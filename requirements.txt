@@ -1,0 +1,12 @@
+flask
+baileys-client
+obspy
+pandas
+numpy
+matplotlib
+seaborn
+plotly
+scikit-learn
+jupyter
+python-dotenv
+requests
