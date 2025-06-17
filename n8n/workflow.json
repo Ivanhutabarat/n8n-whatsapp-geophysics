@@ -1,0 +1,65 @@
+{
+  "name": "WhatsApp Geophysics Automation",
+  "nodes": [
+    {
+      "id": "1",
+      "name": "Webhook - WhatsApp",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 300],
+      "parameters": {
+        "path": "whatsapp-bot",
+        "httpMethod": "POST",
+        "responseMode": "onReceived",
+        "responseData": {
+          "responseBody": "Received. Processing..."
+        }
+      }
+    },
+    {
+      "id": "2",
+      "name": "Execute Python Script",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [500, 300],
+      "parameters": {
+        "command": "jupyter nbconvert --to notebook --execute notebooks/analysis.ipynb --inplace"
+      }
+    },
+    {
+      "id": "3",
+      "name": "Send Image to WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [800, 300],
+      "parameters": {
+        "url": "https://api.callmebot.com/whatsapp.php",
+        "method": "GET",
+        "queryParametersUi": {
+          "parameter": [
+            {
+              "name": "phone",
+              "value": "YOUR_PHONE_NUMBER"
+            },
+            {
+              "name": "text",
+              "value": "Here is your analysis result. 📊"
+            },
+            {
+              "name": "apikey",
+              "value": "YOUR_API_KEY"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook - WhatsApp": {
+      "main": [["Execute Python Script"]]
+    },
+    "Execute Python Script": {
+      "main": [["Send Image to WhatsApp"]]
+    }
+  }
+}
