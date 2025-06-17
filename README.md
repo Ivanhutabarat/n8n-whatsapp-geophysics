@@ -49,27 +49,7 @@ This is an integrated project combining a **WhatsApp Bot**, **Geophysics data an
 
 ---
 
-## 📁 Folder Structure
-📦whatsapp-bot-geo-n8n 
-├── main.py       
-# WhatsApp bot logic
-├── data/ 
-│   
-└── sample_seismic_data.mseed 
-├── matlab/ 
-│   
-└── process_data.m      
-# MATLAB processing 
-├── notebooks/ 
-│   
-└── analysis.ipynb     
-# Jupyter Notebook analysis 
-├── workflows/
-│  
-└── n8n-whatsapp-workflow.json
-├── requirements.txt
-└── README.md
----
+
 
 ## 🛠️ Tech Stack
 
