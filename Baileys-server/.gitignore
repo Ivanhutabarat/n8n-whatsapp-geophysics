@@ -1,0 +1,11 @@
+# Dependencies
+node_modules/
+
+# Auth credentials (Baileys login)
+auth_info/
+
+# Environment variables
+.env
+
+# Logs
+npm-debug.log*
