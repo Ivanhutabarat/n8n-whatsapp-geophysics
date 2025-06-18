@@ -1,13 +1,14 @@
 {
-  "name": "whatsapp-bot",
+  "name": "baileys-wa-server",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "axios": "^1.6.0",
-    "dotenv": "^16.3.0",
+    "@hapi/boom": "^10.0.0",
+    "@whiskeysockets/baileys": "^6.6.0",
+    "dotenv": "^16.4.0",
     "express": "^4.18.2"
   }
 }
