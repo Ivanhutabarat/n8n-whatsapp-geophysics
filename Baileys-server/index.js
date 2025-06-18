@@ -1,10 +1,31 @@
 require('dotenv').config();
 const express = require('express');
+const fetch = require('node-fetch');
 const { Boom } = require('@hapi/boom');
 const { default: makeWASocket, useMultiFileAuthState } = require('@whiskeysockets/baileys');
 
 const app = express();
 app.use(express.json());
+
+// 🧠 Fungsi untuk ambil jawaban dari AI
+async function fetchAI(prompt) {
+  const apiKey = process.env.OPENAI_API_KEY;
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: 'POST',
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      model: "gpt-3.5-turbo",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.85
+    })
+  });
+
+  const data = await response.json();
+  return data.choices?.[0]?.message?.content || "Maaf, AI-nya belum respon 😅";
+}
 
 let sock;
 (async () => {
@@ -15,8 +36,28 @@ let sock;
   sock.ev.on('connection.update', ({ connection }) => {
     if (connection === 'open') console.log('✅ WhatsApp connected!');
   });
+
+  // 🤖 Listener auto-reply
+  sock.ev.on('messages.upsert', async ({ messages }) => {
+    const msg = messages[0];
+    if (!msg.message || msg.key.fromMe) return;
+
+    const from = msg.key.remoteJid;
+    const text = msg.message.conversation || msg.message.extendedTextMessage?.text;
+    if (!text) return;
+
+    try {
+      const prompt = `Pesan dari Ipan: "${text}". Jawablah sebagai AI asisten pribadi yang pintar, suportif, dan ringan diajak ngobrol.`;
+      const reply = await fetchAI(prompt);
+
+      await sock.sendMessage(from, { text: `🤖 ${reply}` });
+    } catch (err) {
+      console.error("❌ Error reply AI:", err);
+    }
+  });
 })();
 
+// 📩 Endpoint kirim pesan dari n8n
 app.post('/send-wa', async (req, res) => {
   const { number, message } = req.body;
   if (!number || !message) return res.status(400).json({ error: 'Missing number or message' });
