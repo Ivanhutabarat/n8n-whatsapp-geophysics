@@ -1,28 +1,34 @@
 require('dotenv').config();
 const express = require('express');
-const axios = require('axios');
+const { Boom } = require('@hapi/boom');
+const { default: makeWASocket, useMultiFileAuthState } = require('@whiskeysockets/baileys');
+
 const app = express();
 app.use(express.json());
 
-const PORT = process.env.PORT || 3000;
+let sock;
+(async () => {
+  const { state, saveCreds } = await useMultiFileAuthState('auth_info');
+  sock = makeWASocket({ auth: state });
 
-app.post('/incoming', async (req, res) => {
-  const { message, from } = req.body;
-  console.log(`Received message from ${from}: ${message}`);
+  sock.ev.on('creds.update', saveCreds);
+  sock.ev.on('connection.update', ({ connection }) => {
+    if (connection === 'open') console.log('✅ WhatsApp connected!');
+  });
+})();
 
-  // Kirim ke n8n webhook
+app.post('/send-wa', async (req, res) => {
+  const { number, message } = req.body;
+  if (!number || !message) return res.status(400).json({ error: 'Missing number or message' });
+
   try {
-    await axios.post(process.env.N8N_WEBHOOK_URL, {
-      from,
-      message
-    });
-    res.send('OK');
-  } catch (error) {
-    console.error('Error forwarding to n8n:', error.message);
-    res.status(500).send('Error');
+    await sock.sendMessage(`${number}@s.whatsapp.net`, { text: message });
+    res.json({ success: true, message: 'Pesan berhasil dikirim!' });
+  } catch (err) {
+    console.error('❌ Gagal kirim WA:', err);
+    res.status(500).json({ error: 'Gagal mengirim pesan' });
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`WhatsApp bot server is running on port ${PORT}`);
-});
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🚀 Server Baileys jalan di http://localhost:${PORT}`));
