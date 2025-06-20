@@ -1,0 +1,37 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "log-chat",
+        "responseMode": "lastNode"
+      },
+      "id": "Webhook_LogChat",
+      "name": "Webhook /log-chat",
+      "type": "n8n-nodes-base.webhook",
+      "position": [100, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Ambil payload dari bot-wa.js\nconst { number, message, command } = $json;\n\nreturn [{\n  json: {\n    Timestamp: new Date().toISOString(),\n    Nomor: number,\n    Pesan: message,\n    Command: command || \"(tidak dikenal)\"\n  }\n}];"
+      },
+      "id": "FormatData",
+      "name": "Format Data",
+      "type": "n8n-nodes-base.function",
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "none",
+        "url": "https://api.sheetbest.com/sheets/c1614c87-fcf0-4e10-b485-d4d97ecb94be",
+        "method": "POST",
+        "responseFormat": "json"
+      },
+      "id": "KirimSheetBest",
+      "name": "Simpan ke SheetBest",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [500, 300]
+    }
+  ],
+  "connections": {
+    "Webhook /log-chat": {
