@@ -1,68 +1,44 @@
-const {
-  makeWASocket,
-  useMultiFileAuthState,
-  fetchLatestBaileysVersion,
-  DisconnectReason
-} = require("@whiskeysockets/baileys");
-const P = require("pino");
+const startBot = require("./core/startBot");
 const fs = require("fs");
 const path = require("path");
 
-async function startBot() {
-  const { state, saveCreds } = await useMultiFileAuthState("session");
-  const { version } = await fetchLatestBaileysVersion();
+const commands = {};
 
-  const sock = makeWASocket({
-    version,
-    auth: state,
-    logger: P({ level: "silent" }),
-    browser: ["Ipan-Bot", "Chrome", "10.0"]
-  });
+// Load semua command dari folder /commands
+const commandsPath = path.join(__dirname, "commands");
+fs.readdirSync(commandsPath).forEach((file) => {
+  if (file.endsWith(".js")) {
+    const cmd = require(`./commands/${file}`);
+    commands[cmd.name] = cmd;
+  }
+});
 
-  sock.ev.on("creds.update", saveCreds);
-
-  // Handle pesan masuk
-  sock.ev.on("messages.upsert", async ({ messages, type }) => {
+startBot().then((sock) => {
+  sock.ev.on("messages.upsert", async ({ messages }) => {
     const msg = messages[0];
     if (!msg.message || msg.key.fromMe) return;
 
-    const text = msg.message.conversation || msg.message.extendedTextMessage?.text;
-    const sender = msg.key.remoteJid;
-    console.log("📥 Pesan masuk dari", sender, ":", text);
+    const from = msg.key.remoteJid;
+    const text =
+      msg.message.conversation ||
+      msg.message.extendedTextMessage?.text;
 
-    // Periksa apakah itu perintah dengan awalan /
-    if (text && text.startsWith("/")) {
-      const [commandName, ...args] = text.slice(1).split(" ");
-      const cmdFile = path.join(__dirname, "commands", `${commandName}.js`);
-      if (fs.existsSync(cmdFile)) {
-        try {
-          const command = require(cmdFile);
-          await command.run(sock, msg, args);
-        } catch (err) {
-          console.error("❌ Error di command:", err);
-          await sock.sendMessage(sender, { text: "⚠️ Ada error saat jalanin perintah." });
-        }
-      } else {
-        await sock.sendMessage(sender, { text: "❓ Perintah tidak dikenal. Ketik /help" });
+    if (!text || !text.startsWith("/")) return;
+
+    const [cmdName, ...args] = text.slice(1).trim().split(/\s+/);
+    const command = commands[cmdName.toLowerCase()];
+
+    if (command && typeof command.execute === "function") {
+      try {
+        await command.execute(sock, msg, args);
+      } catch (err) {
+        console.error(`❌ Gagal jalanin /${cmdName}:`, err);
+        await sock.sendMessage(from, { text: "⚠️ Ada error di perintah ini." });
       }
+    } else {
+      await sock.sendMessage(from, {
+        text: "❓ Perintah tidak dikenali. Coba ketik /help"
+      });
     }
   });
-
-  sock.ev.on("connection.update", ({ connection, lastDisconnect }) => {
-    if (connection === "close") {
-      const reason = lastDisconnect?.error?.output?.statusCode;
-      if (reason !== DisconnectReason.loggedOut) {
-        console.log("🔁 Koneksi terputus, mencoba sambung ulang...");
-        startBot();
-      } else {
-        console.log("⛔ Kamu logout. Jalankan ulang pairing.js");
-      }
-    }
-
-    if (connection === "open") {
-      console.log("✅ Bot sudah aktif dan terhubung ke WhatsApp!");
-    }
-  });
-}
-
-startBot();
+});
