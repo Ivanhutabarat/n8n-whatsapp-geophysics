@@ -1,0 +1,89 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "triggerTimes": [
+          {
+            "mode": "everyHour"
+          }
+        ]
+      },
+      "id": "Cron_Trigger",
+      "name": "Setiap Jam",
+      "type": "n8n-nodes-base.cron",
+      "position": [100, 200]
+    },
+    {
+      "parameters": {
+        "url": "https://data.bmkg.go.id/DataMKG/TEWS/autogempa.json",
+        "responseFormat": "json"
+      },
+      "id": "HTTP_Request_BMKG",
+      "name": "Ambil Info Gempa",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [300, 200]
+    },
+    {
+      "parameters": {
+        "functionCode": "const g = $json.Infogempa;\nreturn [{\n  json: {\n    pesan: `📢 *Info Gempa Terbaru*\n📅 ${g.Tanggal} ${g.Jam}\n📍 ${g.Wilayah}\n💥 Magnitudo: ${g.Magnitude}\n📏 Kedalaman: ${g.Kedalaman}\n🌊 ${g.Potensi}`\n  }\n}];"
+      },
+      "id": "Format_Pesan",
+      "name": "Format WhatsApp",
+      "type": "n8n-nodes-base.function",
+      "position": [500, 100]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:3000/send",
+        "method": "POST",
+        "bodyParametersJson": "={\n  \"number\": \"6285260245100\",\n  \"message\": \"{{$json.pesan}}\"\n}"
+      },
+      "id": "Kirim_WA",
+      "name": "Kirim ke WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [700, 100]
+    },
+    {
+      "parameters": {
+        "functionCode": "const g = $json.Infogempa;\nreturn [{\n  json: {\n    Tanggal: g.Tanggal,\n    Jam: g.Jam,\n    Wilayah: g.Wilayah,\n    Magnitude: g.Magnitude,\n    Kedalaman: g.Kedalaman,\n    Potensi: g.Potensi\n  }\n}];"
+      },
+      "id": "Siapkan_Log",
+      "name": "Siapkan Log",
+      "type": "n8n-nodes-base.function",
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "sheetId": "18dF2Z9ChA9Ti2JIQGKIxV53e-7fVR3qb6h8DeXNe11M",
+        "range": "Sheet1!A:F",
+        "valueInputMode": "USER_ENTERED"
+      },
+      "id": "Log_Google_Sheets",
+      "name": "Catat ke Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [700, 300]
+    }
+  ],
+  "connections": {
+    "Setiap Jam": {
+      "main": [[{ "node": "Ambil Info Gempa", "type": "main", "index": 0 }]]
+    },
+    "Ambil Info Gempa": {
+      "main": [
+        [
+          { "node": "Format WhatsApp", "type": "main", "index": 0 },
+          { "node": "Siapkan Log", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Format WhatsApp": {
+      "main": [[{ "node": "Kirim ke WhatsApp", "type": "main", "index": 0 }]]
+    },
+    "Siapkan Log": {
+      "main": [[{ "node": "Catat ke Sheets", "type": "main", "index": 0 }]]
+    }
+  ],
+  "active": true,
+  "name": "Gempa Alert + Logging"
+  }
