@@ -13,14 +13,13 @@ module.exports = {
   category: "api",
   async execute(sock, msg, args) {
     const { from, pushName } = msg;
-
     const location = args.length ? args.join(" ") : "Jakarta";
 
     try {
       const res = await axios.get("https://api.openweathermap.org/data/2.5/weather", {
         params: {
           q: location,
-          appid: "049695e4ee0805221840c3231ab07f8a", // ← pakai key kamu
+          appid: "049695e4ee0805221840c3231ab07f8a", // ← ganti dengan API key kamu
           units: "metric",
           lang: "id"
         }
@@ -41,4 +40,8 @@ module.exports = {
 
     } catch (err) {
       await sock.sendMessage(from, {
-        text
+        text: "❌ Gagal mengambil data cuaca. Coba lagi nanti ya!"
+      });
+    }
+  }
+};
