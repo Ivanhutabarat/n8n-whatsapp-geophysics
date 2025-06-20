@@ -1,0 +1,44 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "log-today",
+        "responseMode": "lastNode"
+      },
+      "id": "Webhook1",
+      "name": "Webhook /log-today",
+      "type": "n8n-nodes-base.webhook",
+      "position": [100, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://docs.google.com/spreadsheets/d/18dF2Z9ChA9Ti2JIQGKIxV53e-7fVR3qb6h8DeXNe11M/gviz/tq?tqx=out:json&sheet=Log_Gempa",
+        "responseFormat": "string"
+      },
+      "id": "AmbilSheet",
+      "name": "Ambil Data Sheet",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "const raw = items[0].json;\nconst jsonStr = raw.replace(/^.*?\\({/, '{').replace(/}\\);?$/, '}');\nconst data = JSON.parse(jsonStr);\nconst rows = data.table.rows;\n\nfunction parseDate(tanggal) {\n  const [yyyy, mm, dd] = tanggal.split(\"-\");\n  return `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`;\n}\n\nconst today = new Date().toISOString().slice(0, 10);\nconst header = data.table.cols.map(col => col.label);\n\nconst hasil = rows.map(r => {\n  const obj = {};\n  header.forEach((key, idx) => obj[key] = r.c[idx]?.v);\n  return obj;\n}).filter(x => x.Tanggal === today);\n\nif (hasil.length === 0) {\n  return [{ json: { pesan: '📭 Tidak ada gempa yang tercatat hari ini.' } }];\n}\n\nconst list = hasil.map(i => `- ${i.Jam} | ${i.Magnitude} SR | ${i.Wilayah}`).join(\"\\n\");\n\nreturn [{ json: { pesan: `📋 *Log Gempa Hari Ini*\\n\\n${list}` } }];"
+      },
+      "id": "FormatHariIni",
+      "name": "Filter dan Format",
+      "type": "n8n-nodes-base.function",
+      "position": [500, 300]
+    }
+  ],
+  "connections": {
+    "Webhook /log-today": {
+      "main": [[{ "node": "Ambil Data Sheet", "type": "main", "index": 0 }]]
+    },
+    "Ambil Data Sheet": {
+      "main": [[{ "node": "Filter dan Format", "type": "main", "index": 0 }]]
+    }
+  ],
+  "active": true,
+  "name": "log-today"
+  }
