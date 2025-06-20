@@ -19,7 +19,7 @@ module.exports = {
       const res = await axios.get("https://api.openweathermap.org/data/2.5/weather", {
         params: {
           q: location,
-          appid: "049695e4ee0805221840c3231ab07f8a", // ← ganti dengan API key kamu
+          appid: "049695e4ee0805221840c3231ab07f8a", // ganti pakai key kamu sendiri
           units: "metric",
           lang: "id"
         }
