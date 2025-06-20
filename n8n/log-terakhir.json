@@ -1,0 +1,44 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "log-terakhir",
+        "responseMode": "lastNode"
+      },
+      "id": "Webhook_LogTerakhir",
+      "name": "Webhook /log-terakhir",
+      "type": "n8n-nodes-base.webhook",
+      "position": [100, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://docs.google.com/spreadsheets/d/18dF2Z9ChA9Ti2JIQGKIxV53e-7fVR3qb6h8DeXNe11M/gviz/tq?tqx=out:json&sheet=Log_Gempa",
+        "responseFormat": "string"
+      },
+      "id": "Ambil_Data",
+      "name": "Ambil Data Sheet",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "const raw = items[0].json;\nconst jsonStr = raw.replace(/^.*?\\({/, '{').replace(/}\\);?$/, '}');\nconst data = JSON.parse(jsonStr);\nconst rows = data.table.rows;\nconst header = data.table.cols.map(col => col.label);\n\nconst now = new Date();\nconst satuJamLalu = new Date(now.getTime() - 60 * 60 * 1000);\nconst today = now.toISOString().slice(0, 10);\n\nfunction parseJam(jamStr) {\n  const [jam, menit] = jamStr.split(\":\");\n  const dt = new Date();\n  dt.setHours(parseInt(jam));\n  dt.setMinutes(parseInt(menit));\n  dt.setSeconds(0);\n  dt.setMilliseconds(0);\n  return dt;\n}\n\nconst hasil = rows.map(r => {\n  const obj = {};\n  header.forEach((key, idx) => obj[key] = r.c[idx]?.v);\n  return obj;\n}).filter(x => {\n  if (x.Tanggal !== today) return false;\n  const jamGempa = parseJam(x.Jam);\n  return jamGempa >= satuJamLalu && jamGempa <= now;\n});\n\nif (hasil.length === 0) {\n  return [{ json: { pesan: '📭 Tidak ada getaran dalam 1 jam terakhir.' } }];\n}\n\nconst list = hasil.map(x => `- ${x.Jam} | ${x.Magnitude} SR | ${x.Wilayah}`).join(\"\\n\");\nreturn [{ json: { pesan: `⏱️ *Getaran 1 Jam Terakhir*\\n\\n${list}` } }];"
+      },
+      "id": "FilterGetaran",
+      "name": "Filter dan Format",
+      "type": "n8n-nodes-base.function",
+      "position": [500, 300]
+    }
+  ],
+  "connections": {
+    "Webhook /log-terakhir": {
+      "main": [[{ "node": "Ambil Data Sheet", "type": "main", "index": 0 }]]
+    },
+    "Ambil Data Sheet": {
+      "main": [[{ "node": "Filter dan Format", "type": "main", "index": 0 }]]
+    }
+  ],
+  "active": true,
+  "name": "log-terakhir"
+  }
