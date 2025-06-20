@@ -4,6 +4,12 @@
  * Author: Ivanhutabarat
  * Last Updated: 2025-06-20
  */
+/**
+ * Command: /cuaca
+ * Description: Show current weather info using OpenWeather API
+ * Author: Ivanhutabarat
+ * Last Updated: 2025-06-20
+ */
 
 const axios = require("axios");
 

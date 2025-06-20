@@ -1,11 +1,11 @@
+require("dotenv").config();
 const startBot = require("./core/startBot");
 const fs = require("fs");
 const path = require("path");
 
 const commands = {};
-
-// Load semua command dari folder /commands
 const commandsPath = path.join(__dirname, "commands");
+
 fs.readdirSync(commandsPath).forEach((file) => {
   if (file.endsWith(".js")) {
     const cmd = require(`./commands/${file}`);
@@ -23,17 +23,19 @@ startBot().then((sock) => {
       msg.message.conversation ||
       msg.message.extendedTextMessage?.text;
 
+    console.log("📥 Pesan diterima:", text);
     if (!text || !text.startsWith("/")) return;
 
     const [cmdName, ...args] = text.slice(1).trim().split(/\s+/);
-    const command = commands[cmdName.toLowerCase()];
+    console.log("⚙️ Command:", cmdName);
 
+    const command = commands[cmdName.toLowerCase()];
     if (command && typeof command.execute === "function") {
       try {
         await command.execute(sock, msg, args);
       } catch (err) {
-        console.error(`❌ Gagal jalanin /${cmdName}:`, err);
-        await sock.sendMessage(from, { text: "⚠️ Ada error di perintah ini." });
+        console.error(`❌ Error di /${cmdName}:`, err.message);
+        await sock.sendMessage(from, { text: "⚠️ Error saat menjalankan perintah." });
       }
     } else {
       await sock.sendMessage(from, {
