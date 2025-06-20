@@ -22,12 +22,13 @@ async function startPairing() {
 
   sock.ev.on("connection.update", ({ connection, qr, lastDisconnect }) => {
     if (qr) {
-      console.log("\n📲 Scan QR berikut dari WhatsApp:");
+      console.log("\n📲 Scan QR dari WhatsApp:");
+      console.log(qr);
       qrcode.generate(qr, { small: true });
     }
 
     if (connection === "open") {
-      console.log("✅ Pairing berhasil! Bot sudah terhubung.");
+      console.log("✅ Pairing berhasil! Kamu sudah terhubung.");
     }
 
     if (connection === "close") {
@@ -39,9 +40,9 @@ async function startPairing() {
       console.log("❌ Koneksi terputus:", lastDisconnect?.error?.message);
       if (shouldReconnect) {
         console.log("🔁 Mencoba pairing ulang...");
-        startPairing();
+        setTimeout(() => startPairing(), 3000);
       } else {
-        console.log("⛔ Pairing ditolak. Coba hapus session dan ulangi.");
+        console.log("⛔ Pairing ditolak. Hapus folder session dan ulangi.");
       }
     }
   });
