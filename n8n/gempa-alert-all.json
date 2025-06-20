@@ -1,0 +1,89 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "triggerTimes": [
+          {
+            "mode": "everyHour"
+          }
+        ]
+      },
+      "id": "Cron_Trigger",
+      "name": "Setiap Jam",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [100, 200]
+    },
+    {
+      "parameters": {
+        "url": "https://data.bmkg.go.id/DataMKG/TEWS/autogempa.json",
+        "responseFormat": "json"
+      },
+      "id": "HTTP_Request_BMKG",
+      "name": "Get Gempa BMKG",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [300, 200]
+    },
+    {
+      "parameters": {
+        "functionCode": "const g = $json.Infogempa;\n\nreturn [{\n  json: {\n    pesan: `📢 *Info Gempa Terbaru*\n📅 ${g.Tanggal} ${g.Jam}\n📍 ${g.Wilayah}\n💥 Magnitudo: ${g.Magnitude}\n📏 Kedalaman: ${g.Kedalaman}\n🌊 ${g.Potensi}`\n  }\n}];"
+      },
+      "id": "Format_Pesan",
+      "name": "Format Pesan",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [500, 200]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:3000/send",
+        "method": "POST",
+        "responseFormat": "json",
+        "bodyParametersJson": "={\n  \"number\": \"6285260245100\",\n  \"message\": \"{{$json.pesan}}\"\n}"
+      },
+      "id": "Kirim_WhatsApp",
+      "name": "Kirim WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [700, 200]
+    }
+  ],
+  "connections": {
+    "Setiap Jam": {
+      "main": [
+        [
+          {
+            "node": "Get Gempa BMKG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Gempa BMKG": {
+      "main": [
+        [
+          {
+            "node": "Format Pesan",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Pesan": {
+      "main": [
+        [
+          {
+            "node": "Kirim WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  ],
+  "name": "Gempa Alert Tiap Jam (Tanpa Filter)",
+  "active": true
+  }
