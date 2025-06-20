@@ -1,160 +1,147 @@
 
 ```markdown
-# 🤖 WhatsApp AI Bot + n8n + Baileys
+# n8n-whatsapp-geophysics
 
-A WhatsApp bot powered by AI, integrated with [n8n](https://n8n.io/) workflows, and supporting real-time commands such as `/btc`, `/weather`, `/vent`, and more. Built for automation, study, and AI-assisted conversations.
-
----
-
-## 🧠 Features
-
-- AI-powered auto-reply (Copilot/OpenAI)
-- Command-based system: `/btc`, `/weather`, `/vent`, `/help`
-- Connects to webhook automation (e.g. via n8n)
-- QR-based WhatsApp session pairing
-- Bash tools for reset, backup, restore, and auto-start
-- Works seamlessly on Termux, VS Code, Replit, Railway, VPS, etc.
+[![Node.js](https://img.shields.io/badge/Node.js-18.x-green?logo=node.js)](https://nodejs.org/)
+[![Termux Friendly](https://img.shields.io/badge/Termux-Compatible-blue?logo=android)](https://termux.dev)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
+[![Made with ❤️ by Ipan](https://img.shields.io/badge/Made%20with-%E2%9D%A4-red)](https://github.com/Ivanhutabarat)
+[![Issues](https://img.shields.io/github/issues/Ivanhutabarat/n8n-whatsapp-geophysics)](https://github.com/Ivanhutabarat/n8n-whatsapp-geophysics/issues)
+[![Last Commit](https://img.shields.io/github/last-commit/Ivanhutabarat/n8n-whatsapp-geophysics)](https://github.com/Ivanhutabarat/n8n-whatsapp-geophysics/commits/main)
 
 ---
 
-## ⚙️ Quick Setup
+## 🧠 Tentang Project
+
+Project ini adalah bot WhatsApp modular yang dibangun dengan Node.js dan [Baileys](https://github.com/WhiskeySockets/Baileys), dioptimalkan untuk dijalankan dari Termux dengan fitur-fitur seperti reminder, info cuaca, crypto, berita, dan integrasi AI dari OpenAI.
+
+---
+
+## ⚙️ Fitur Utama
+
+- 🔄 Pairing WhatsApp via QR code langsung di Termux
+- ⏰ Reminder otomatis berdasarkan jadwal di `storage/`
+- 🌤️ Info cuaca harian
+- 📈 Harga crypto real-time (BTC, ETH)
+- 📰 News headlines terkini
+- 🤖 Integrasi OpenAI GPT untuk command
+- 💬 Modular command (cukup tambah file `.js`)
+
+---
+
+## 🚀 Instalasi di Termux
 
 ```bash
-git clone https://github.com/Ivanhutabarat/n8n-whatsapp-geophysics.git
+pkg update && pkg upgrade -y
+pkg install git nodejs -y
+npm install -g pm2
+```
+
+---
+
+## 📁 Clone Repositori
+
+```bash
+git clone https://github.com/Ivanhutabarat/n8n-whatsapp-geophysics
 cd n8n-whatsapp-geophysics
-chmod +x setup.sh
-./setup.sh
 ```
 
-Then choose to run either:
+---
+
+## 🔐 Konfigurasi .env
+
+1. Copy file contoh:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Buka dan isi:
+   ```bash
+   nano .env
+   ```
+
+```env
+OPENAI_API_KEY=sk-...
+COINGECKO_API_KEY=CG-...
+OPENWEATHER_KEY=...
+NEWS_API_KEY=...
+OWNER_JID=628XXXXXXXX@s.whatsapp.net
+```
+
+---
+
+## 📲 Pairing WhatsApp
 
 ```bash
-./tools.sh       # Interactive menu (reset, backup, start bot)
-./auto-start.sh  # Automatically detects pairing and starts bot
+npm install
+node pairing.js
 ```
+
+→ Scan QR code dari WhatsApp:  
+**Titik tiga (⋮) > Perangkat tertaut > Tautkan Perangkat**
 
 ---
 
-## 📱 Run on Termux (Android)
+## ⏯️ Jalankan Bot
 
 ```bash
-git clone https://github.com/Ivanhutabarat/n8n-whatsapp-geophysics.git
-cd n8n-whatsapp-geophysics
-chmod +x setup.sh
-./setup.sh
-./tools.sh
+chmod +x start.sh stop.sh
+./start.sh
 ```
-
-> A QR code will appear; scan with your WhatsApp account to pair the session.
 
 ---
 
-## 💻 Run on VS Code (Desktop)
-
-1. Open the project folder in VS Code  
-2. Open the integrated terminal (Ctrl + `)  
-3. Run:
+## ❌ Stop Bot
 
 ```bash
-chmod +x setup.sh
-./setup.sh
-./tools.sh
+./stop.sh
 ```
 
-> Make sure Node.js and npm are installed.
-
 ---
 
-## 💬 WhatsApp Commands Documentation
+## 🔁 Auto-Start Saat Buka Termux
 
-### `/btc`
-- **Purpose:** Display the latest Bitcoin price using CoinGecko API
-- **Example Response:**
-  ```
-  💸 BTC Price: $67,500
-  ⏱️ Updated: 20 seconds ago
-  ```
-- **Requirements:** internet access, axios/fetch
-- **Handler File:** `commands/btc.js`
-
----
-
-### `/weather`
-- **Purpose:** Show current weather based on location (text or IP)
-- **Example Response:**
-  ```
-  ☀️ Weather in Jakarta
-  Temperature: 31°C | Humidity: 75%
-  Condition: Clear sky
-  ```
-- **API:** OpenWeather API
-- **Handler File:** `commands/weather.js`
-
----
-
-### `/vent` (aka `/curhat`)
-- **Purpose:** Engage in an empathetic conversation — AI becomes your listener
-- **Response:** Natural and emotion-aware conversation using AI
-- **Integrations:** Copilot or OpenAI (optional)
-- **Handler File:** `commands/vent.js`
-
----
-
-### `/help`
-- **Purpose:** Lists available commands and features
-- **Handler File:** `commands/help.js`
-
----
-
-## 🔐 Pairing Management
-
-🔸 **To back up your session:**
 ```bash
-tar -czf auth_backup.tar.gz auth_info/
-```
-
-🔸 **To restore pairing on another device or after reinstall:**
-```bash
-tar -xzf auth_backup.tar.gz
-```
-
-Or simply use `tools.sh`:
-
-- Option [2] → Backup
-- Option [3] → Restore
-
----
-
-## 🗂 Project Structure
-
-```
-n8n-whatsapp-geophysics/
-├── baileys-server/
-│   └── index.js
-├── tools.sh
-├── auto-start.sh
-├── setup.sh
-├── backups/
-└── README.md
+echo 'pm2 resurrect' >> ~/.bashrc
 ```
 
 ---
 
-## ✨ Built With
+## 🗂 Struktur Folder
 
-- [Baileys](https://github.com/WhiskeySockets/Baileys)
-- Node.js
-- Termux / Bash CLI
-- [n8n.io](https://n8n.io/)
-- OpenAI or Copilot API (optional for AI replies)
-
----
-
-## 👤 Author
-
-Crafted by [Ivanhutabarat](https://github.com/Ivanhutabarat)  
-From Sumatra — bridging AI with WhatsApp automation 🇮🇩⚡
+```
+├── bot.js
+├── pairing.js
+├── start.sh / stop.sh
+├── .env / .env.example
+├── core/
+├── commands/
+├── lib/
+├── storage/
+└── session/
 ```
 
 ---
+
+## 📬 Contoh Command WhatsApp
+
+- `/jadwal` — tampilkan jadwal reminder
+- `/cuaca` — info cuaca lokal
+- `/crypto` — harga BTC & ETH
+- `/news` — berita hari ini
+- `/help`, `/donasi`, dll → bisa ditambahkan bebas
+
+---
+
+## 📜 Lisensi
+
+Proyek ini dilisensikan di bawah [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) — kamu bebas menggunakan, memodifikasi, dan mendistribusikan, asalkan menyertakan atribusi dan salinan lisensi.
+
+---
+
+## 🙌 Kontributor
+
+Dibuat oleh [@Ivanhutabarat](https://github.com/Ivanhutabarat)  
+Didukung penuh dengan semangat eksplorasi & inovasi di ujung jari 🔧📱🚀
+```
 
