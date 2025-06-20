@@ -1,0 +1,86 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "wa-inbox",
+        "responseMode": "lastNode"
+      },
+      "id": "Webhook_Trigger",
+      "name": "Pesan Masuk WA",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [100, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.body.message}}",
+              "operation": "equal",
+              "value2": "/info gempa"
+            }
+          ]
+        }
+      },
+      "id": "Cek_Kata_Kunci",
+      "name": "Pesan = /info gempa?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [300, 200]
+    },
+    {
+      "parameters": {
+        "url": "https://data.bmkg.go.id/DataMKG/TEWS/autogempa.json",
+        "responseFormat": "json"
+      },
+      "id": "Ambil_Data_BMKG",
+      "name": "Ambil Info Gempa",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [500, 100]
+    },
+    {
+      "parameters": {
+        "functionCode": "const g = $json.Infogempa;\nreturn [{\n  json: {\n    pesan: `📢 *Info Gempa Terkini*\n📅 ${g.Tanggal} ${g.Jam}\n📍 ${g.Wilayah}\n💥 Magnitudo: ${g.Magnitude}\n📏 Kedalaman: ${g.Kedalaman}\n🌊 ${g.Potensi}`,\n    nomor: $json[\"body\"][\"number\"]\n  }\n}];"
+      },
+      "id": "Format_Balasan",
+      "name": "Format Pesan Balik",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [700, 100]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:3000/send",
+        "method": "POST",
+        "bodyParametersJson": "={\n  \"number\": \"{{$json.nomor}}\",\n  \"message\": \"{{$json.pesan}}\"\n}"
+      },
+      "id": "Kirim_Balasan_WA",
+      "name": "Kirim ke WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [900, 100]
+    }
+  ],
+  "connections": {
+    "Pesan Masuk WA": {
+      "main": [[{ "node": "Pesan = /info gempa?", "type": "main", "index": 0 }]]
+    },
+    "Pesan = /info gempa?": {
+      "main": [
+        [{ "node": "Ambil Info Gempa", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Ambil Info Gempa": {
+      "main": [[{ "node": "Format Pesan Balik", "type": "main", "index": 0 }]]
+    },
+    "Format Pesan Balik": {
+      "main": [[{ "node": "Kirim ke WhatsApp", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": true,
+  "name": "Bot Info Gempa"
+}
