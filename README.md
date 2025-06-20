@@ -160,6 +160,11 @@ echo 'pm2 resurrect' >> ~/.bashrc
 ## 📜 Lisensi
 
 Proyek ini dilisensikan di bawah [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) — bebas digunakan, dimodifikasi, dan didistribusikan, asalkan mencantumkan atribusi dan menyertakan salinan lisensi.
+Karya ini dilindungi oleh [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0).  
+Semua bentuk penggunaan, modifikasi, atau distribusi ulang **wajib mencantumkan atribusi yang jelas kepada pembuat asli**, yaitu [@Ivanhutabarat](https://github.com/Ivanhutabarat).
+
+Bagian tertentu dari arsitektur, kode, atau alur sistem dalam proyek ini dapat mencerminkan hasil kerja orisinal dan mungkin tunduk pada perlindungan hukum tambahan seperti hak cipta atau paten. Dilarang mengklaim ulang sebagai milik pribadi tanpa izin tertulis.
+
 
 ---
 
